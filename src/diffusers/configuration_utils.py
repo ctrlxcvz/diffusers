@@ -58,6 +58,10 @@ class ConfigMixin:
         kwargs["_class_name"] = self.__class__.__name__
         kwargs["_diffusers_version"] = __version__
 
+        # Special case for `kwargs` used in deprecation warning added to schedulers
+        # TODO: remove this when we remove the deprecation warning, and the `kwargs` argument,
+        # or solve in a more general way.
+        kwargs.pop("kwargs", None)
         for key, value in kwargs.items():
             try:
                 setattr(self, key, value)
@@ -456,6 +460,9 @@ def flax_register_to_config(cls):
 
         # Make sure init_kwargs override default kwargs
         new_kwargs = {**default_kwargs, **init_kwargs}
+        # dtype should be part of `init_kwargs`, but not `new_kwargs`
+        if "dtype" in new_kwargs:
+            new_kwargs.pop("dtype")
 
         # Get positional arguments aligned with kwargs
         for i, arg in enumerate(args):
